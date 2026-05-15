@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BinaryCod</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">BC</div>
+        <div>
+          <strong>BinaryCod</strong>
+          <span>Compresión y señales</span>
+        </div>
+      </div>
+
+      <nav class="nav-list" aria-label="Modulos">
+        <button class="nav-item active" data-section="codificar">Codificar</button>
+        <button class="nav-item" data-section="decodificar">Decodificar</button>
+        <button class="nav-item" data-section="visualizacion">Visualización</button>
+        <button class="nav-item" data-section="bitmap">Bitmap B/N</button>
+        <button class="nav-item" data-section="adc">ADC</button>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1>BinaryCod</h1>
+          <p>Plataforma educativa para codificación, compresión binaria y digitalización de señales.</p>
+        </div>
+        <div class="topbar-actions">
+          <span id="statusText">Listo</span>
+          <button class="ghost-button" id="loadDemoButton">Demo</button>
+        </div>
+      </header>
+
+      <section class="app-section active" id="codificar">
+        <div class="section-grid section-grid-wide">
+          <div class="panel input-panel">
+            <div class="panel-header">
+              <h2>Entrada</h2>
+              <span id="charCount">0 caracteres</span>
+            </div>
+
+            <label for="sourceText">Texto o contenido de archivo .txt</label>
+            <textarea id="sourceText" spellcheck="false" placeholder="Ingrese un mensaje para analizar y comprimir..."></textarea>
+
+            <div class="file-row">
+              <label class="file-button" for="textFile">Cargar .txt</label>
+              <input id="textFile" type="file" accept=".txt,text/plain">
+              <span id="fileName">Sin archivo</span>
+            </div>
+
+            <div class="control-group">
+              <label>Algoritmo</label>
+              <div class="segmented">
+                <button class="segment active" data-algorithm="both">Comparar</button>
+                <button class="segment" data-algorithm="huffman">Huffman</button>
+                <button class="segment" data-algorithm="shannon">Shannon-Fano</button>
+              </div>
+            </div>
+
+            <button class="primary-button" id="processButton">Procesar mensaje</button>
+          </div>
+
+          <div class="panel metrics-panel">
+            <div class="panel-header">
+              <h2>Comparación</h2>
+              <span id="bestAlgorithm">Sin datos</span>
+            </div>
+            <div class="metric-list">
+              <div class="metric-row">
+                <span>Bits originales</span>
+                <strong id="originalBits">0</strong>
+              </div>
+              <div class="metric-row">
+                <span>Huffman</span>
+                <strong id="huffmanBits">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Shannon-Fano</span>
+                <strong id="shannonBits">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tasa de compresión</span>
+                <strong id="compressionRate">0%</strong>
+              </div>
+              <div class="metric-row">
+                <span>Eficiencia</span>
+                <strong id="efficiencyValue">0%</strong>
+              </div>
+              <div class="metric-row">
+                <span>Longitud promedio</span>
+                <strong id="avgLength">0</strong>
+              </div>
+              <div class="metric-row">
+                <span>Entropía</span>
+                <strong id="entropyValue">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          <div class="panel table-panel">
+            <div class="panel-header">
+              <h2>Tabla de simbolos</h2>
+              <span>Frecuencia, probabilidad y códigos</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Símbolo</th>
+                    <th>Frecuencia</th>
+                    <th>Prob.</th>
+                    <th>Huffman</th>
+                    <th>Shannon-Fano</th>
+                  </tr>
+                </thead>
+                <tbody id="symbolsTable">
+                  <tr><td colspan="5">Procese un texto para ver la tabla.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel output-panel">
+            <div class="panel-header">
+              <h2>Resultado codificado</h2>
+              <span id="encodedMeta">0 bits</span>
+            </div>
+            <textarea id="encodedOutput" spellcheck="false" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="panel formulas-panel">
+          <div class="panel-header">
+            <h2>Fórmulas de la cátedra</h2>
+            <span>Huffman, Shannon-Fano y codificación</span>
+          </div>
+          <div class="formula-grid">
+            <article class="formula-card">
+              <h3>Frecuencia del símbolo</h3>
+              <code>f(i)</code>
+              <p>Cantidad de apariciones de un símbolo. Se corresponde con la columna Frecuencia de la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Probabilidad</h3>
+              <code>p(i) = f(i) / N</code>
+              <p>Proporción de apariciones respecto del total de símbolos. Se muestra como Prob. en la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Información del símbolo</h3>
+              <code>I(i) = log₂(1 / p(i))</code>
+              <p>Mide la información asociada a cada símbolo según su probabilidad. Fundamenta el cálculo de entropía.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Entropía del mensaje</h3>
+              <code>H = Σ p(i) · I(i)</code>
+              <p>Información promedio de la fuente. Se relaciona con la métrica Entropía mostrada en la comparación.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Longitud promedio</h3>
+              <code>L = Σ p(i) · l(i)</code>
+              <p>Cantidad media de bits usados por símbolo codificado. Se relaciona con Longitud promedio.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Bits del mensaje</h3>
+              <code>Bits(i) = f(i) · l(i)</code>
+              <p>Aporte de cada símbolo al tamaño comprimido. Se relaciona con los códigos generados en la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Eficiencia</h3>
+              <code>η = H / L</code>
+              <p>Compara la entropía teórica con la longitud promedio obtenida. Se muestra como Eficiencia.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Tasa de compresión</h3>
+              <code>CR = tamaño original / tamaño comprimido</code>
+              <p>Relaciona el tamaño inicial con el tamaño codificado. Se vincula con Bits originales y bits comprimidos.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="decodificar">
+        <div class="section-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Decodificación</h2>
+              <span>Usa la tabla generada</span>
+            </div>
+            <label for="decodeAlgorithm">Algoritmo</label>
+            <select id="decodeAlgorithm">
+              <option value="huffman">Huffman</option>
+              <option value="shannon">Shannon-Fano</option>
+            </select>
+            <label for="encodedInput">Mensaje binario</label>
+            <textarea id="encodedInput" spellcheck="false" placeholder="Pegue bits codificados o procese un mensaje primero..."></textarea>
+            <div class="file-row">
+              <label class="file-button" for="decodeFile">Cargar .txt</label>
+              <input id="decodeFile" type="file" accept=".txt,text/plain">
+              <span id="decodeFileName">Sin archivo</span>
+            </div>
+            <button class="primary-button" id="decodeButton">Decodificar</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Texto recuperado</h2>
+              <span id="decodeStatus">Pendiente</span>
+            </div>
+            <textarea id="decodedOutput" spellcheck="false" readonly></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="visualizacion">
+        <div class="section-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>Frecuencias</h2>
+              <span>Distribucion de simbolos</span>
+            </div>
+            <canvas id="frequencyChart"></canvas>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>Longitudes de código</h2>
+              <span>Huffman vs Shannon-Fano</span>
+            </div>
+            <canvas id="lengthChart"></canvas>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>Tamaños comprimidos</h2>
+              <span>Comparacion final</span>
+            </div>
+            <canvas id="comparisonChart"></canvas>
+          </div>
+
+          <div class="panel tree-panel">
+            <div class="panel-header">
+              <h2>Árboles de codificación</h2>
+              <span>Huffman y Shannon-Fano</span>
+            </div>
+            <div id="treeView" class="tree-view">Procese texto para visualizar el arbol.</div>
+          </div>
+        </div>
+
+        <div class="panel formulas-panel">
+          <div class="panel-header">
+            <h2>Fórmulas de la cátedra</h2>
+            <span>Comparación de algoritmos</span>
+          </div>
+          <div class="formula-grid">
+            <article class="formula-card">
+              <h3>Frecuencia del símbolo</h3>
+              <code>f(i)</code>
+              <p>Cantidad de apariciones de un símbolo. Se corresponde con la columna Frecuencia de la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Probabilidad</h3>
+              <code>p(i) = f(i) / N</code>
+              <p>Proporción de apariciones respecto del total de símbolos. Se muestra como Prob. en la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Información del símbolo</h3>
+              <code>I(i) = log₂(1 / p(i))</code>
+              <p>Mide la información asociada a cada símbolo según su probabilidad. Fundamenta el cálculo de entropía.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Entropía del mensaje</h3>
+              <code>H = Σ p(i) · I(i)</code>
+              <p>Información promedio de la fuente. Se relaciona con la métrica Entropía mostrada en la comparación.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Longitud promedio</h3>
+              <code>L = Σ p(i) · l(i)</code>
+              <p>Cantidad media de bits usados por símbolo codificado. Se relaciona con Longitud promedio.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Bits del mensaje</h3>
+              <code>Bits(i) = f(i) · l(i)</code>
+              <p>Aporte de cada símbolo al tamaño comprimido. Se relaciona con los códigos generados en la tabla.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Eficiencia</h3>
+              <code>η = H / L</code>
+              <p>Compara la entropía teórica con la longitud promedio obtenida. Se muestra como Eficiencia.</p>
+            </article>
+            <article class="formula-card">
+              <h3>Tasa de compresión</h3>
+              <code>CR = tamaño original / tamaño comprimido</code>
+              <p>Relaciona el tamaño inicial con el tamaño codificado. Se vincula con Bits originales y bits comprimidos.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="bitmap">
+        <div class="section-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Mapa de bits blanco y negro</h2>
+              <span id="bitmapMeta">16 x 16</span>
+            </div>
+            <div class="bitmap-tools">
+              <label for="bitmapSize" id="bitmapResolutionLabel">Resolución: 16x16</label>
+              <input id="bitmapSize" type="range" min="8" max="32" step="4" value="16">
+              <button class="ghost-button" id="clearBitmap">Limpiar</button>
+              <button class="ghost-button" id="randomBitmap">Generar patrón de prueba</button>
+              <label class="file-button" for="bitmapFile">Cargar imagen</label>
+              <input id="bitmapFile" type="file" accept="image/png,image/jpeg,image/webp,image/bmp">
+              <button class="ghost-button" id="downloadBitmap" disabled>Descargar imagen procesada</button>
+            </div>
+            <div class="bitmap-dropzone" id="bitmapDropzone">
+              <strong>Arrastrá una imagen acá o seleccioná un archivo.</strong>
+              <span id="bitmapDropStatus">Sin imagen cargada.</span>
+            </div>
+            <label>Vista previa original</label>
+            <canvas id="bitmapOriginalCanvas" width="320" height="320"></canvas>
+            <label>Imagen procesada</label>
+            <canvas id="bitmapCanvas" width="320" height="320"></canvas>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Compresión RLE</h2>
+              <span>Píxeles binarios</span>
+            </div>
+            <div class="metric-list">
+              <div class="metric-row">
+                <span>Bits originales</span>
+                <strong id="bitmapOriginal">256</strong>
+              </div>
+              <div class="metric-row">
+                <span>Bits comprimidos</span>
+                <strong id="bitmapCompressed">0</strong>
+              </div>
+              <div class="metric-row">
+                <span>Píxeles blancos</span>
+                <strong id="bitmapWhite">256</strong>
+              </div>
+              <div class="metric-row">
+                <span>Píxeles negros</span>
+                <strong id="bitmapBlack">0</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tasa</span>
+                <strong id="bitmapRatio">0%</strong>
+              </div>
+            </div>
+            <label for="bitmapOutput">Secuencia comprimida</label>
+            <textarea id="bitmapOutput" readonly spellcheck="false"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="adc">
+        <div class="section-grid section-grid-wide">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Simulador ADC</h2>
+              <span id="nyquistStatus">Nyquist estable</span>
+            </div>
+            <label for="signalType">Tipo de señal</label>
+            <select id="signalType">
+              <option value="sine">Sinusoidal</option>
+              <option value="square">Cuadrada</option>
+              <option value="noise">Ruido</option>
+            </select>
+            <label for="signalFrequency">Frecuencia: <span id="frequencyLabel">5 Hz</span></label>
+            <input id="signalFrequency" type="range" min="1" max="60" value="5">
+            <label for="samplingRate">Muestreo: <span id="samplingLabel">50 Hz</span></label>
+            <input id="samplingRate" type="range" min="8" max="120" step="1" value="50">
+            <label for="quantBits">Cuantización</label>
+            <select id="quantBits">
+              <option value="8">8 bits</option>
+              <option value="16">16 bits</option>
+              <option value="24">24 bits</option>
+            </select>
+          </div>
+
+          <div class="panel metrics-panel">
+            <div class="panel-header">
+              <h2>Mediciones</h2>
+              <span>Tiempo real</span>
+            </div>
+            <div class="metric-list">
+              <div class="metric-row">
+                <span>Frecuencia Nyquist</span>
+                <strong id="nyquistValue">25 Hz</strong>
+              </div>
+              <div class="metric-row">
+                <span>Muestras</span>
+                <strong id="sampleCount">0</strong>
+              </div>
+              <div class="metric-row">
+                <span>Niveles</span>
+                <strong id="quantLevels">256</strong>
+              </div>
+              <div class="metric-row">
+                <span>Aliasing</span>
+                <strong id="aliasingValue">No</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>Original vs digitalizada</h2>
+              <span>Comparativa temporal</span>
+            </div>
+            <canvas id="adcChart"></canvas>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>Señal cuantizada</h2>
+              <span>Escalones digitales</span>
+            </div>
+            <canvas id="digitalChart"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
