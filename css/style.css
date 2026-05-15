@@ -20,7 +20,9 @@
 html,
 body {
   min-height: 100%;
+  max-width: 100%;
   margin: 0;
+  overflow-x: hidden;
 }
 
 body {
@@ -41,13 +43,23 @@ button {
   cursor: pointer;
 }
 
+img,
+canvas,
+svg {
+  max-width: 100%;
+}
+
 .app-shell {
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
+  overflow-x: hidden;
 }
 
 .sidebar {
+  min-width: 0;
   background: #080c14;
   border-right: 1px solid var(--border);
   padding: 20px 14px;
@@ -57,6 +69,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   padding: 4px 6px 22px;
   border-bottom: 1px solid var(--border);
 }
@@ -77,6 +90,7 @@ button {
 .brand strong,
 .brand span {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .brand span {
@@ -89,9 +103,11 @@ button {
   display: grid;
   gap: 4px;
   margin-top: 18px;
+  max-width: 100%;
 }
 
 .nav-item {
+  min-width: 0;
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
@@ -108,8 +124,11 @@ button {
 }
 
 .main-content {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   padding: 24px;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -117,6 +136,7 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+  min-width: 0;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
 }
@@ -145,13 +165,14 @@ p {
 .topbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   color: var(--muted);
-  white-space: nowrap;
 }
 
 .app-section {
   display: none;
+  max-width: 100%;
   padding-top: 20px;
 }
 
@@ -164,6 +185,7 @@ p {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   margin-bottom: 16px;
+  max-width: 100%;
 }
 
 .section-grid-wide {
@@ -171,6 +193,8 @@ p {
 }
 
 .panel {
+  width: 100%;
+  max-width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -183,6 +207,7 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   margin-bottom: 14px;
 }
 
@@ -202,6 +227,7 @@ textarea,
 select,
 input[type="text"] {
   width: 100%;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #0a0f1d;
@@ -228,6 +254,7 @@ select:focus {
 
 input[type="range"] {
   width: 100%;
+  max-width: 100%;
   accent-color: var(--accent);
 }
 
@@ -238,6 +265,7 @@ input[type="range"] {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
+  max-width: 100%;
 }
 
 input[type="file"] {
@@ -248,6 +276,7 @@ input[type="file"] {
 .ghost-button,
 .primary-button,
 .segment {
+  max-width: 100%;
   min-height: 38px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -315,6 +344,7 @@ input[type="file"] {
 
 .primary-button {
   width: 100%;
+  max-width: 100%;
   margin-top: 14px;
   background: var(--primary);
   border-color: #3156b8;
@@ -330,6 +360,7 @@ input[type="file"] {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+  max-width: 100%;
 }
 
 .segment.active {
@@ -348,17 +379,21 @@ input[type="file"] {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  min-width: 0;
   padding: 10px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .metric-row span {
   color: var(--muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .metric-row strong {
   font-size: 14px;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .formulas-panel {
@@ -406,7 +441,9 @@ input[type="file"] {
 }
 
 .table-wrap {
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -429,15 +466,19 @@ th {
 }
 
 .chart-panel {
+  width: 100%;
   min-height: 330px;
+  overflow: hidden;
 }
 
 .chart-panel canvas {
   width: 100% !important;
+  max-width: 100% !important;
   height: 260px !important;
 }
 
 .tree-view {
+  max-width: 100%;
   min-height: 260px;
   overflow: auto;
   color: var(--muted);
@@ -458,6 +499,7 @@ th {
 
 .tree-children {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   padding-left: 16px;
   margin-left: 12px;
@@ -483,9 +525,30 @@ th {
 #decodedOutput,
 #encodedOutput {
   min-height: 220px;
+  overflow: auto;
+  white-space: pre;
+  word-break: normal;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 228px minmax(0, 1fr);
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .section-grid-wide {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.75fr);
+  }
+
+  .formula-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -495,6 +558,8 @@ th {
     top: 0;
     z-index: 5;
     padding: 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
   }
 
   .brand {
@@ -503,10 +568,14 @@ th {
 
   .nav-list {
     display: flex;
+    flex-wrap: wrap;
     overflow-x: auto;
+    gap: 8px;
   }
 
   .nav-item {
+    flex: 1 1 150px;
+    text-align: center;
     white-space: nowrap;
   }
 
@@ -524,20 +593,171 @@ th {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
+  .main-content {
+    padding: 18px;
+  }
+
+  .topbar {
+    gap: 14px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+  }
+
+  .topbar-actions .ghost-button {
+    flex: 1 1 140px;
+  }
+
+  .panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chart-panel {
+    min-height: 290px;
+  }
+
+  .chart-panel canvas {
+    height: 230px !important;
+  }
+
+  table {
+    min-width: 620px;
+  }
+
+  #bitmapCanvas,
+  #bitmapOriginalCanvas {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
   .main-content {
     padding: 16px;
+  }
+
+  .sidebar {
+    padding: 10px;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .nav-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .nav-item {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .panel {
+    padding: 14px;
   }
 
   .segmented {
     grid-template-columns: 1fr;
   }
 
+  .file-row,
+  .bitmap-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .file-button,
+  .ghost-button,
+  .primary-button,
+  .segment,
+  select,
+  textarea,
+  input[type="range"] {
+    width: 100%;
+  }
+
   .formula-grid {
     grid-template-columns: 1fr;
   }
 
+  .metric-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .metric-row strong {
+    text-align: left;
+  }
+
+  .chart-panel {
+    min-height: 260px;
+  }
+
+  .chart-panel canvas {
+    height: 210px !important;
+  }
+
+  #bitmapOutput,
+  #decodedOutput,
+  #encodedOutput {
+    min-height: 180px;
+  }
+
   h1 {
     font-size: 23px;
+  }
+}
+
+@media (max-width: 400px) {
+  body {
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 12px;
+  }
+
+  .app-section {
+    padding-top: 14px;
+  }
+
+  .section-grid {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .nav-list {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+
+  h1 {
+    font-size: 21px;
+  }
+
+  textarea {
+    min-height: 150px;
+  }
+
+  table {
+    min-width: 560px;
+  }
+
+  .chart-panel canvas {
+    height: 190px !important;
   }
 }
