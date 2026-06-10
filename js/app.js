@@ -326,6 +326,12 @@ function clearCompressionUI() {
   $("#summaryHuffmanSize").textContent = "0 bits";
   $("#summaryShannonSize").textContent = "0 bits";
   $("#summaryCompressionRate").textContent = "0%";
+  $("#visualOriginalSize").textContent = "0 bits";
+  $("#visualHuffmanSize").textContent = "0 bits";
+  $("#visualShannonSize").textContent = "0 bits";
+  $("#visualBestAlgorithm").textContent = "Sin datos";
+  $("#visualSizeDifference").textContent = "0 bits";
+  $("#visualCompressionRate").textContent = "0%";
   clearDecodeUI();
   $("#symbolsTable").innerHTML = '<tr><td colspan="6">Procese un texto para ver la tabla.</td></tr>';
   $("#treeView").textContent = "Procese texto para visualizar el arbol.";
@@ -358,6 +364,12 @@ function updateCompressionUI(text) {
   $("#summaryHuffmanSize").textContent = `${huffman.metrics.compressedBits} bits`;
   $("#summaryShannonSize").textContent = `${shannon.metrics.compressedBits} bits`;
   $("#summaryCompressionRate").textContent = `${best.metrics.compressionRate.toFixed(2)}%`;
+  $("#visualOriginalSize").textContent = `${huffman.metrics.originalBits} bits`;
+  $("#visualHuffmanSize").textContent = `${huffman.metrics.compressedBits} bits`;
+  $("#visualShannonSize").textContent = `${shannon.metrics.compressedBits} bits`;
+  $("#visualBestAlgorithm").textContent = best.name;
+  $("#visualSizeDifference").textContent = `${Math.abs(huffman.metrics.compressedBits - shannon.metrics.compressedBits)} bits`;
+  $("#visualCompressionRate").textContent = `${best.metrics.compressionRate.toFixed(2)}%`;
 
   renderSymbolsTable(text, huffman, shannon);
 }
@@ -384,14 +396,87 @@ function renderSymbolsTable(text, huffman, shannon) {
   $("#symbolsTable").innerHTML = rows;
 }
 
-function renderTreeNode(node) {
-  if (!node) return "";
-  const label = node.symbol === null ? node.frequency : `${symbolLabel(node.symbol)}:${node.frequency}`;
-  const children = node.left || node.right
-    ? `<div class="tree-children"><div class="tree-branch">${renderTreeNode(node.left)}</div><div class="tree-branch">${renderTreeNode(node.right)}</div></div>`
-    : "";
-  const nodeType = node.symbol === null ? "internal" : "leaf";
-  return `<div class="tree-level"><span class="tree-node ${nodeType}">${escapeHtml(label)}</span>${children}</div>`;
+function measureTree(node, depth = 0) {
+  if (!node) return { leaves: 0, depth };
+  if (!node.left && !node.right) return { leaves: 1, depth };
+  const left = measureTree(node.left, depth + 1);
+  const right = measureTree(node.right, depth + 1);
+  return {
+    leaves: left.leaves + right.leaves,
+    depth: Math.max(left.depth, right.depth)
+  };
+}
+
+function layoutTree(node, depth, cursor, nodes, links, spacing) {
+  if (!node) return 0;
+
+  const isLeaf = !node.left && !node.right;
+  if (isLeaf) {
+    const x = spacing.margin + cursor.value * spacing.x;
+    const y = spacing.margin + depth * spacing.y;
+    nodes.push({ node, x, y, depth, isLeaf });
+    cursor.value += 1;
+    return x;
+  }
+
+  const leftX = layoutTree(node.left, depth + 1, cursor, nodes, links, spacing);
+  const rightX = layoutTree(node.right, depth + 1, cursor, nodes, links, spacing);
+  const x = (leftX + rightX) / 2;
+  const y = spacing.margin + depth * spacing.y;
+  const current = { node, x, y, depth, isLeaf: false };
+  nodes.push(current);
+
+  [node.left, node.right].forEach((child) => {
+    if (!child) return;
+    const childEntry = nodes.find((entry) => entry.node === child);
+    if (childEntry) links.push({ from: current, to: childEntry });
+  });
+
+  return x;
+}
+
+function renderTreeSvg(root, algorithm) {
+  const stats = measureTree(root);
+  const leafCount = Math.max(stats.leaves, 1);
+  const depthCount = Math.max(stats.depth + 1, 1);
+  const dense = leafCount > 10;
+  const spacing = {
+    margin: dense ? 34 : 42,
+    x: dense ? 58 : 76,
+    y: dense ? 78 : 92
+  };
+  const nodeRadius = dense ? 18 : 23;
+  const fontSize = dense ? 10 : 12;
+  const width = Math.max(leafCount * spacing.x + spacing.margin, 280);
+  const height = Math.max(depthCount * spacing.y + spacing.margin, 180);
+  const nodes = [];
+  const links = [];
+
+  layoutTree(root, 0, { value: 0 }, nodes, links, spacing);
+
+  const lines = links.map(({ from, to }) => `
+    <line class="svg-tree-link ${algorithm}" x1="${from.x}" y1="${from.y + nodeRadius}" x2="${to.x}" y2="${to.y - nodeRadius}" />
+  `).join("");
+
+  const circles = nodes.map((entry) => {
+    const label = entry.isLeaf ? `${symbolLabel(entry.node.symbol)}:${entry.node.frequency}` : `${entry.node.frequency}`;
+    const safeLabel = escapeHtml(label);
+    const nodeClass = entry.isLeaf ? "leaf" : "internal";
+    const rootClass = entry.depth === 0 ? " root" : "";
+    return `
+      <g class="svg-tree-node ${algorithm} ${nodeClass}${rootClass}" transform="translate(${entry.x} ${entry.y})">
+        <circle r="${nodeRadius}" />
+        <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${safeLabel}</text>
+      </g>
+    `;
+  }).join("");
+
+  return `
+    <svg class="svg-tree ${algorithm}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Árbol ${algorithm}">
+      ${lines}
+      ${circles}
+    </svg>
+  `;
 }
 
 function renderTree() {
@@ -406,14 +491,14 @@ function renderTree() {
         <h3>Árbol Huffman</h3>
         <span>Frecuencia acumulada en nodos internos</span>
       </div>
-      <div class="tree-canvas">${renderTreeNode(state.huffman.tree)}</div>
+      <div class="tree-canvas">${renderTreeSvg(state.huffman.tree, "huffman")}</div>
     </div>
     <div class="tree-card">
       <div class="tree-card-header">
         <h3>Árbol Shannon-Fano</h3>
         <span>Particiones por probabilidad</span>
       </div>
-      <div class="tree-canvas">${renderTreeNode(state.shannon.tree)}</div>
+      <div class="tree-canvas">${renderTreeSvg(state.shannon.tree, "shannon")}</div>
     </div>
   `;
 }

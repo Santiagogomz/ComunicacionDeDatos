@@ -305,8 +305,8 @@
           </div>
         </div>
 
-        <div class="section-grid">
-          <div class="panel chart-panel">
+        <div class="section-grid results-layout-grid">
+          <div class="panel chart-panel compact-chart-panel">
             <div class="panel-header">
               <h2>Tamaños comprimidos</h2>
               <span>Comparacion final</span>
@@ -314,21 +314,54 @@
             <canvas id="comparisonChart"></canvas>
           </div>
 
-          <div class="panel tree-panel">
+          <div class="panel compression-metrics-panel">
             <div class="panel-header">
-              <h2>Árboles de codificación</h2>
-              <span>Huffman y Shannon-Fano</span>
+              <h2>Métricas de compresión</h2>
+              <span>Resumen comparativo</span>
             </div>
-            <div id="treeView" class="tree-view">Procese texto para visualizar el arbol.</div>
+            <div class="metric-list">
+              <div class="metric-row">
+                <span>Tamaño original</span>
+                <strong id="visualOriginalSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Huffman</span>
+                <strong id="visualHuffmanSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Shannon-Fano</span>
+                <strong id="visualShannonSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Mejor algoritmo</span>
+                <strong id="visualBestAlgorithm">Sin datos</strong>
+              </div>
+              <div class="metric-row">
+                <span>Diferencia</span>
+                <strong id="visualSizeDifference">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tasa de compresión</span>
+                <strong id="visualCompressionRate">0%</strong>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="panel formulas-panel">
+        <div class="panel tree-panel">
           <div class="panel-header">
-            <h2>Fórmulas de la cátedra</h2>
-            <span>Comparación de algoritmos</span>
+            <h2>Árboles de codificación</h2>
+            <span>Huffman y Shannon-Fano</span>
           </div>
-          <div class="formula-grid">
+          <div id="treeView" class="tree-view">Procese texto para visualizar el arbol.</div>
+        </div>
+
+        <div class="panel formulas-panel">
+            <div class="panel-header">
+              <h2>Fórmulas de la cátedra</h2>
+              <span>Comparación de algoritmos</span>
+            </div>
+            <div class="formula-grid">
             <article class="formula-card">
               <h3>Frecuencia del símbolo</h3>
               <code>f(i)</code>

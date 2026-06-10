@@ -538,19 +538,49 @@ th {
   height: 320px !important;
 }
 
+.results-layout-grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.75fr);
+  align-items: stretch;
+}
+
+.compact-chart-panel {
+  min-height: 320px;
+  max-height: 380px;
+}
+
+.compact-chart-panel canvas {
+  height: 240px !important;
+}
+
+.compression-metrics-panel {
+  min-height: 320px;
+}
+
+.compression-metrics-panel .metric-row strong {
+  color: #67e8f9;
+}
+
+.compression-metrics-panel .metric-row:nth-child(3) strong {
+  color: #c4b5fd;
+}
+
+.compression-metrics-panel .metric-row:nth-child(5) strong {
+  color: #fbbf24;
+}
+
 .tree-view {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   max-width: 100%;
   min-height: 360px;
-  overflow: auto;
+  overflow: visible;
   color: var(--muted);
 }
 
 .tree-card {
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface-2);
@@ -575,79 +605,62 @@ th {
 }
 
 .tree-canvas {
-  min-width: max-content;
-  padding: 8px 4px 4px;
+  width: 100%;
+  padding: 8px 0 0;
 }
 
-.tree-level {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  position: relative;
+.svg-tree {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
-.tree-node {
-  display: inline-block;
-  min-width: 42px;
-  margin: 4px;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--text);
-  text-align: center;
-  font-size: 12px;
+.svg-tree-link {
+  stroke: #5b6b82;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
-.tree-node.internal {
-  border-color: #35518f;
+.svg-tree-link.huffman {
+  stroke: #22d3ee;
 }
 
-.tree-node.leaf {
-  border-color: #6d4dc7;
+.svg-tree-link.shannon {
+  stroke: #a78bfa;
 }
 
-.tree-children {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 22px;
-  position: relative;
-  margin-top: 18px;
-  padding-top: 14px;
+.svg-tree-node circle {
+  fill: #0a0f1d;
+  stroke-width: 2.4;
 }
 
-.tree-children::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 22px;
-  right: 22px;
-  border-top: 1px solid #3b4b63;
+.svg-tree-node text {
+  fill: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-weight: 700;
+  pointer-events: none;
 }
 
-.tree-level > .tree-children::after {
-  content: "";
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  height: 18px;
-  border-left: 1px solid #3b4b63;
+.svg-tree-node.huffman.internal circle {
+  stroke: #22d3ee;
 }
 
-.tree-branch {
-  position: relative;
-  display: flex;
-  justify-content: center;
+.svg-tree-node.shannon.internal circle {
+  stroke: #a78bfa;
 }
 
-.tree-branch::before {
-  content: "";
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  height: 14px;
-  border-left: 1px solid #3b4b63;
+.svg-tree-node.leaf circle {
+  stroke: #39ff88;
+}
+
+.svg-tree-node.root circle {
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.55));
+  stroke-width: 3;
+}
+
+.svg-tree-node.shannon.root circle {
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.55));
 }
 
 #bitmapCanvas,
