@@ -453,9 +453,9 @@ function treeNodeLabelParts(entry) {
 }
 
 function treeNodeRadius(entry, dense, largeView = false) {
-  const scale = largeView ? 1.16 : 1;
-  const radius = entry.depth === 0 ? (dense ? 76 : 86) : (dense ? 66 : 74);
-  return Math.round(radius * scale);
+  if (entry.depth === 0) return largeView ? 96 : 84;
+  if (entry.isLeaf) return largeView ? 84 : 72;
+  return largeView ? 78 : 66;
 }
 
 function treeLinkEndpoint(from, to, dense, largeView = false) {
@@ -482,15 +482,15 @@ function renderTreeSvg(root, algorithm, options = {}) {
   const depthCount = Math.max(stats.depth + 1, 1);
   const dense = leafCount > 14;
   const maxLabelLength = maxTreeLabelLength(root);
-  const fontSize = largeView ? (dense ? 22 : 24) : (dense ? 18 : 20);
-  const leafFontSize = largeView ? (dense ? 22 : 24) : (dense ? 18 : 20);
+  const fontSize = largeView ? 26 : 20;
+  const leafFontSize = largeView ? 24 : 20;
   const baseRadius = treeNodeRadius({ depth: 1 }, dense, largeView);
   const rootRadius = treeNodeRadius({ depth: 0 }, dense, largeView);
-  const estimatedNodeDiameter = Math.max(rootRadius * 2, maxLabelLength * fontSize * 0.62 + baseRadius * 1.5);
+  const estimatedNodeDiameter = Math.max(rootRadius * 2, maxLabelLength * fontSize * 0.74 + baseRadius * 1.7);
   const spacing = {
-    margin: Math.ceil(rootRadius + 42),
-    x: Math.max(dense ? 178 : 210, estimatedNodeDiameter + 52),
-    y: dense ? 188 : 220
+    margin: Math.ceil(rootRadius + 48),
+    x: Math.max(dense ? 190 : 230, estimatedNodeDiameter + 64),
+    y: dense ? 204 : 238
   };
   const width = Math.max(leafCount * spacing.x + spacing.margin, 520);
   const height = Math.max(depthCount * spacing.y + spacing.margin, 300);
@@ -511,12 +511,13 @@ function renderTreeSvg(root, algorithm, options = {}) {
     const nodeClass = entry.isLeaf ? "leaf" : "internal";
     const rootClass = entry.depth === 0 ? " root" : "";
     const radius = treeNodeRadius(entry, dense, largeView);
-    const leafOffset = largeView ? 15 : 13;
     const labelMarkup = entry.isLeaf ? `
-        <text class="leaf-symbol" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="-${leafOffset}">${labelParts[0]}</text>
-        <text class="leaf-frequency" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="${leafOffset + 2}">${labelParts[1]}</text>
+        <text class="tree-label leaf-label" text-anchor="middle" dominant-baseline="middle" font-size="${leafFontSize}">
+          <tspan x="0" dy="-0.35em">${labelParts[0]}</tspan>
+          <tspan x="0" dy="1.15em">${labelParts[1]}</tspan>
+        </text>
       ` : `
-        <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${labelParts[0]}</text>
+        <text class="tree-label" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}">${labelParts[0]}</text>
       `;
 
     return `
@@ -529,8 +530,10 @@ function renderTreeSvg(root, algorithm, options = {}) {
 
   return `
     <svg class="svg-tree ${algorithm}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Árbol ${algorithm}">
-      ${lines}
-      ${circles}
+      <g class="svg-tree-content">
+        ${lines}
+        ${circles}
+      </g>
     </svg>
   `;
 }
@@ -541,7 +544,13 @@ function renderTree() {
     return;
   }
 
-  $("#treeView").innerHTML = `
+  const huffmanLeaves = measureTree(state.huffman.tree).leaves;
+  const shannonLeaves = measureTree(state.shannon.tree).leaves;
+  const hasDenseTree = Math.max(huffmanLeaves, shannonLeaves) > 10;
+  const treeView = $("#treeView");
+
+  treeView.className = `tree-view ${hasDenseTree ? "tree-view-stacked" : "tree-view-paired"}`;
+  treeView.innerHTML = `
     <div class="tree-card">
       <div class="tree-card-header">
         <div>
@@ -585,24 +594,36 @@ function renderTree() {
 }
 
 function createTreeViewer(card) {
-    const viewport = card.querySelector(".tree-viewport");
-    const stage = card.querySelector(".tree-stage");
-    const controls = card.querySelectorAll("[data-tree-action]");
-    const viewer = {
-      viewport,
-      stage,
-      scale: 1,
-      x: 0,
-      y: 0,
-      pointers: new Map(),
-      isDragging: false,
-      lastX: 0,
-      lastY: 0,
-      pinchStartDistance: 0,
-      pinchStartScale: 1
-    };
+  const viewport = card.querySelector(".tree-viewport");
+  const stage = card.querySelector(".tree-stage");
+  const svg = stage.querySelector(".svg-tree");
+  const content = stage.querySelector(".svg-tree-content");
+  const controls = card.querySelectorAll("[data-tree-action]");
+  const viewer = {
+    viewport,
+    stage,
+    scale: 1,
+    x: 0,
+    y: 0,
+    pointers: new Map(),
+    isDragging: false,
+    lastX: 0,
+    lastY: 0,
+    pinchStartDistance: 0,
+    pinchStartScale: 1,
+    svg,
+    content
+  };
 
     const applyTransform = () => {
+      if (viewer.content && viewer.svg) {
+        const rect = viewer.svg.getBoundingClientRect();
+        const viewBox = viewer.svg.viewBox.baseVal;
+        const unitScale = rect.width > 0 ? viewBox.width / rect.width : 1;
+        viewer.content.setAttribute("transform", `translate(${viewer.x * unitScale} ${viewer.y * unitScale}) scale(${viewer.scale})`);
+        return;
+      }
+
       viewer.stage.style.transform = `translate(${viewer.x}px, ${viewer.y}px) scale(${viewer.scale})`;
     };
 
@@ -642,6 +663,10 @@ function createTreeViewer(card) {
       clampPan();
       applyTransform();
     };
+
+    viewer.clampPan = clampPan;
+    viewer.applyTransform = applyTransform;
+    viewer.resetView = resetView;
 
     viewport.addEventListener("wheel", (event) => {
       event.preventDefault();
@@ -1223,7 +1248,17 @@ function updateAdc() {
   });
 }
 
+function refreshTreeViewersOnResize() {
+  state.treeViewers.forEach((viewer) => {
+    if (!viewer || !viewer.clampPan || !viewer.applyTransform) return;
+    viewer.clampPan();
+    viewer.applyTransform();
+  });
+}
+
 function bindEvents() {
+  let resizeTimer = null;
+
   $$(".nav-item").forEach((button) => {
     button.addEventListener("click", () => {
       $$(".nav-item").forEach((item) => item.classList.remove("active"));
@@ -1305,6 +1340,11 @@ function bindEvents() {
   ["#signalType", "#signalFrequency", "#samplingRate", "#quantBits"].forEach((selector) => {
     $(selector).addEventListener("input", updateAdc);
     $(selector).addEventListener("change", updateAdc);
+  });
+
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(refreshTreeViewersOnResize, 120);
   });
 }
 

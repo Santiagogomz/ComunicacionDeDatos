@@ -582,6 +582,10 @@ th {
   color: #ffffff;
 }
 
+.tree-view-stacked {
+  grid-template-columns: 1fr;
+}
+
 .tree-card {
   min-width: 0;
   overflow: hidden;
@@ -647,6 +651,7 @@ th {
 .tree-controls {
   display: inline-flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 4px;
   border: 1px solid rgba(125, 211, 252, 0.24);
@@ -752,10 +757,13 @@ th {
 
 .svg-tree-node text {
   fill: #ffffff;
-  font-family: Inter, Poppins, "Segoe UI", Arial, sans-serif;
-  font-weight: 800;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 700;
+  paint-order: stroke;
   pointer-events: none;
-  stroke: none;
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 2px;
+  stroke-linejoin: round;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
   font-smooth: always;
@@ -766,7 +774,7 @@ th {
 }
 
 .svg-tree-node.leaf .leaf-frequency {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .svg-tree-node.huffman.internal circle {
@@ -822,9 +830,9 @@ th {
   word-break: normal;
 }
 
-@media (min-width: 1600px) {
-  .tree-view {
-    grid-template-columns: repeat(2, minmax(720px, 1fr));
+@media (min-width: 1201px) {
+  .tree-view-paired {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -983,6 +991,20 @@ th {
 
   .tree-controls {
     align-self: flex-start;
+  }
+
+  .tree-modal {
+    padding: 10px;
+  }
+
+  .tree-modal-card {
+    width: 100%;
+    max-height: 96vh;
+    padding: 12px;
+  }
+
+  .modal-tree-viewport {
+    height: 70vh;
   }
 
   .tree-card-header h3 {
