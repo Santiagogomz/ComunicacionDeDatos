@@ -407,6 +407,12 @@ function measureTree(node, depth = 0) {
   };
 }
 
+function maxTreeLabelLength(node) {
+  if (!node) return 0;
+  const label = node.symbol === null ? `${node.frequency}` : `${symbolLabel(node.symbol)}:${node.frequency}`;
+  return Math.max(label.length, maxTreeLabelLength(node.left), maxTreeLabelLength(node.right));
+}
+
 function layoutTree(node, depth, cursor, nodes, links, spacing) {
   if (!node) return 0;
 
@@ -440,13 +446,15 @@ function renderTreeSvg(root, algorithm) {
   const leafCount = Math.max(stats.leaves, 1);
   const depthCount = Math.max(stats.depth + 1, 1);
   const dense = leafCount > 10;
+  const maxLabelLength = maxTreeLabelLength(root);
+  const fontSize = dense ? 13 : 15;
+  const estimatedMaxNodeWidth = Math.max(dense ? 68 : 82, maxLabelLength * fontSize * 0.78 + 30);
   const spacing = {
-    margin: dense ? 34 : 42,
-    x: dense ? 58 : 76,
-    y: dense ? 78 : 92
+    margin: Math.ceil(estimatedMaxNodeWidth / 2 + 18),
+    x: Math.max(dense ? 88 : 112, estimatedMaxNodeWidth + 20),
+    y: dense ? 94 : 112
   };
-  const nodeRadius = dense ? 18 : 23;
-  const fontSize = dense ? 10 : 12;
+  const nodeHeight = dense ? 34 : 40;
   const width = Math.max(leafCount * spacing.x + spacing.margin, 280);
   const height = Math.max(depthCount * spacing.y + spacing.margin, 180);
   const nodes = [];
@@ -455,7 +463,7 @@ function renderTreeSvg(root, algorithm) {
   layoutTree(root, 0, { value: 0 }, nodes, links, spacing);
 
   const lines = links.map(({ from, to }) => `
-    <line class="svg-tree-link ${algorithm}" x1="${from.x}" y1="${from.y + nodeRadius}" x2="${to.x}" y2="${to.y - nodeRadius}" />
+    <line class="svg-tree-link ${algorithm}" x1="${from.x}" y1="${from.y + nodeHeight / 2}" x2="${to.x}" y2="${to.y - nodeHeight / 2}" />
   `).join("");
 
   const circles = nodes.map((entry) => {
@@ -463,9 +471,12 @@ function renderTreeSvg(root, algorithm) {
     const safeLabel = escapeHtml(label);
     const nodeClass = entry.isLeaf ? "leaf" : "internal";
     const rootClass = entry.depth === 0 ? " root" : "";
+    const nodeWidth = Math.max(dense ? 68 : 82, label.length * fontSize * 0.78 + 30);
+    const x = -nodeWidth / 2;
+    const y = -nodeHeight / 2;
     return `
       <g class="svg-tree-node ${algorithm} ${nodeClass}${rootClass}" transform="translate(${entry.x} ${entry.y})">
-        <circle r="${nodeRadius}" />
+        <rect x="${x}" y="${y}" width="${nodeWidth}" height="${nodeHeight}" rx="${nodeHeight / 2}" />
         <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${safeLabel}</text>
       </g>
     `;
@@ -508,11 +519,11 @@ function chartOptions() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { labels: { color: "#e5e7eb" } }
+      legend: { labels: { color: "#ffffff", font: { size: 13, weight: "600" } } }
     },
     scales: {
-      x: { ticks: { color: "#94a3b8" }, grid: { color: "#1f2937" } },
-      y: { ticks: { color: "#94a3b8" }, grid: { color: "#1f2937" } }
+      x: { ticks: { color: "#e6edf8", font: { size: 12 } }, grid: { color: "#263852" } },
+      y: { ticks: { color: "#e6edf8", font: { size: 12 } }, grid: { color: "#263852" } }
     }
   };
 }
