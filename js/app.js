@@ -450,18 +450,18 @@ function renderTreeSvg(root, algorithm) {
   const stats = measureTree(root);
   const leafCount = Math.max(stats.leaves, 1);
   const depthCount = Math.max(stats.depth + 1, 1);
-  const dense = leafCount > 10;
+  const dense = leafCount > 14;
   const maxLabelLength = maxTreeLabelLength(root);
-  const fontSize = dense ? 13 : 15;
-  const estimatedMaxNodeWidth = Math.max(dense ? 68 : 82, maxLabelLength * fontSize * 0.78 + 30);
+  const fontSize = dense ? 16 : 18;
+  const estimatedMaxNodeWidth = Math.max(dense ? 98 : 118, maxLabelLength * fontSize * 0.82 + 44);
   const spacing = {
-    margin: Math.ceil(estimatedMaxNodeWidth / 2 + 18),
-    x: Math.max(dense ? 88 : 112, estimatedMaxNodeWidth + 20),
-    y: dense ? 94 : 112
+    margin: Math.ceil(estimatedMaxNodeWidth / 2 + 28),
+    x: Math.max(dense ? 122 : 152, estimatedMaxNodeWidth + 34),
+    y: dense ? 128 : 152
   };
-  const nodeHeight = dense ? 34 : 40;
-  const width = Math.max(leafCount * spacing.x + spacing.margin, 280);
-  const height = Math.max(depthCount * spacing.y + spacing.margin, 180);
+  const nodeHeight = dense ? 50 : 58;
+  const width = Math.max(leafCount * spacing.x + spacing.margin, 520);
+  const height = Math.max(depthCount * spacing.y + spacing.margin, 300);
   const nodes = [];
   const links = [];
 
@@ -476,7 +476,7 @@ function renderTreeSvg(root, algorithm) {
     const safeLabel = escapeHtml(label);
     const nodeClass = entry.isLeaf ? "leaf" : "internal";
     const rootClass = entry.depth === 0 ? " root" : "";
-    const nodeWidth = Math.max(dense ? 68 : 82, label.length * fontSize * 0.78 + 30);
+    const nodeWidth = Math.max(dense ? 98 : 118, label.length * fontSize * 0.82 + 44);
     const x = -nodeWidth / 2;
     const y = -nodeHeight / 2;
     return `

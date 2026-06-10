@@ -574,43 +574,44 @@ th {
 
 .tree-view {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 22px;
   max-width: 100%;
-  min-height: 360px;
+  min-height: 520px;
   overflow: visible;
-  color: #e6edf8;
+  color: #ffffff;
 }
 
 .tree-card {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid #415577;
+  border: 1px solid #4b6f9d;
   border-radius: 8px;
-  background: #17243c;
-  padding: 16px;
+  background: #1a2944;
+  padding: 22px;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08), 0 18px 40px rgba(0, 0, 0, 0.22);
 }
 
 .tree-card-header {
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .tree-card-header h3 {
   margin: 0;
-  color: var(--text);
-  font-size: 16px;
+  color: #ffffff;
+  font-size: 20px;
 }
 
 .tree-card-header span {
   display: block;
-  color: #dbe7ff;
-  font-size: 13px;
-  margin-top: 3px;
+  color: #e6f1ff;
+  font-size: 15px;
+  margin-top: 5px;
 }
 
 .tree-canvas {
   width: 100%;
-  padding: 8px 0 0;
+  padding: 10px 0 0;
 }
 
 .svg-tree {
@@ -621,50 +622,53 @@ th {
 }
 
 .svg-tree-link {
-  stroke: #5b6b82;
-  stroke-width: 2;
+  stroke: #7dd3fc;
+  stroke-width: 3.4;
   stroke-linecap: round;
 }
 
 .svg-tree-link.huffman {
-  stroke: #22d3ee;
+  stroke: #67e8f9;
 }
 
 .svg-tree-link.shannon {
-  stroke: #a78bfa;
+  stroke: #c4b5fd;
 }
 
 .svg-tree-node rect {
-  fill: #0b1424;
-  stroke-width: 2.8;
+  fill: #14243f;
+  stroke-width: 3.4;
 }
 
 .svg-tree-node text {
   fill: #ffffff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  font-weight: 700;
+  font-weight: 800;
   pointer-events: none;
 }
 
 .svg-tree-node.huffman.internal rect {
   stroke: #22d3ee;
+  fill: #17345b;
 }
 
 .svg-tree-node.shannon.internal rect {
   stroke: #a78bfa;
+  fill: #2a2359;
 }
 
 .svg-tree-node.leaf rect {
   stroke: #39ff88;
+  fill: #102b2d;
 }
 
 .svg-tree-node.root rect {
-  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.55));
-  stroke-width: 3.4;
+  filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.8));
+  stroke-width: 4.2;
 }
 
 .svg-tree-node.shannon.root rect {
-  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.55));
+  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.8));
 }
 
 #bitmapCanvas,
@@ -692,6 +696,12 @@ th {
   overflow: auto;
   white-space: pre;
   word-break: normal;
+}
+
+@media (min-width: 1600px) {
+  .tree-view {
+    grid-template-columns: repeat(2, minmax(720px, 1fr));
+  }
 }
 
 @media (max-width: 1200px) {
@@ -796,6 +806,10 @@ th {
     height: 260px !important;
   }
 
+  .tree-card {
+    padding: 18px;
+  }
+
   table {
     min-width: 620px;
   }
@@ -832,6 +846,18 @@ th {
 
   .panel {
     padding: 14px;
+  }
+
+  .tree-card {
+    padding: 14px;
+  }
+
+  .tree-card-header h3 {
+    font-size: 18px;
+  }
+
+  .tree-card-header span {
+    font-size: 14px;
   }
 
   .segmented {
