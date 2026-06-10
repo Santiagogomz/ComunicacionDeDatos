@@ -9,6 +9,11 @@ const state = {
   shannon: null,
   sourceText: "",
   charts: {},
+  adcVisibility: {
+    analogica: true,
+    muestras: true,
+    cuantizada: true
+  },
   bitmap: {
     size: 16,
     cells: [],
@@ -528,6 +533,27 @@ function chartOptions() {
   };
 }
 
+function adcChartOptions(chartKey) {
+  const options = chartOptions();
+  const defaultLegendClick = Chart.defaults.plugins.legend.onClick;
+
+  options.parsing = false;
+  options.plugins.legend.onClick = (event, legendItem, legend) => {
+    defaultLegendClick(event, legendItem, legend);
+
+    if (chartKey === "adc") {
+      state.adcVisibility.analogica = legend.chart.isDatasetVisible(0);
+      state.adcVisibility.muestras = legend.chart.isDatasetVisible(1);
+    }
+
+    if (chartKey === "digital") {
+      state.adcVisibility.cuantizada = legend.chart.isDatasetVisible(0);
+    }
+  };
+
+  return options;
+}
+
 function replaceChart(key, canvasId, config) {
   if (state.charts[key]) state.charts[key].destroy();
   state.charts[key] = new Chart($(canvasId), config);
@@ -927,15 +953,15 @@ function updateAdc() {
   $("#nyquistStatus").textContent = aliasing ? "Aliasing detectado" : "Nyquist estable";
   $("#nyquistStatus").style.color = aliasing ? "#f59e0b" : "#10b981";
 
-  const adcOptions = chartOptions();
-  adcOptions.parsing = false;
+  const adcOptions = adcChartOptions("adc");
+  const digitalOptions = adcChartOptions("digital");
 
   replaceChart("adc", "#adcChart", {
     type: "line",
     data: {
       datasets: [
-        { label: "Analógica", data: analog, borderColor: "#e5e7eb", pointRadius: 0, tension: 0.2 },
-        { label: "Muestras", data: samples, borderColor: "#7c3aed", backgroundColor: "#7c3aed", pointRadius: 3, showLine: false }
+        { label: "Analógica", data: analog, borderColor: "#e5e7eb", pointRadius: 0, tension: 0.2, hidden: !state.adcVisibility.analogica },
+        { label: "Muestras", data: samples, borderColor: "#7c3aed", backgroundColor: "#7c3aed", pointRadius: 3, showLine: false, hidden: !state.adcVisibility.muestras }
       ]
     },
     options: adcOptions
@@ -944,9 +970,9 @@ function updateAdc() {
   replaceChart("digital", "#digitalChart", {
     type: "line",
     data: {
-      datasets: [{ label: "Cuantizada", data: samples, borderColor: "#1e3a8a", backgroundColor: "#1e3a8a", stepped: true, pointRadius: 2 }]
+      datasets: [{ label: "Cuantizada", data: samples, borderColor: "#1e3a8a", backgroundColor: "#1e3a8a", stepped: true, pointRadius: 2, hidden: !state.adcVisibility.cuantizada }]
     },
-    options: adcOptions
+    options: digitalOptions
   });
 }
 
