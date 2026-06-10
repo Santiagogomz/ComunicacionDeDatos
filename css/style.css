@@ -396,6 +396,67 @@ input[type="file"] {
   overflow-wrap: anywhere;
 }
 
+.result-summary-panel,
+.final-results-panel {
+  margin-bottom: 16px;
+}
+
+.result-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.result-summary-item {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 12px;
+}
+
+.result-summary-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.result-summary-item strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.result-summary-message strong {
+  max-height: 82px;
+  overflow: auto;
+}
+
+.final-results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.result-block,
+.result-size-list {
+  min-width: 0;
+}
+
+.result-size-list {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 12px;
+}
+
+.result-size-list .metric-row:last-child {
+  border-bottom: 0;
+}
+
 .formulas-panel {
   margin-bottom: 16px;
 }
@@ -467,21 +528,62 @@ th {
 
 .chart-panel {
   width: 100%;
-  min-height: 330px;
+  min-height: 390px;
   overflow: hidden;
 }
 
 .chart-panel canvas {
   width: 100% !important;
   max-width: 100% !important;
-  height: 260px !important;
+  height: 320px !important;
 }
 
 .tree-view {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
   max-width: 100%;
-  min-height: 260px;
+  min-height: 360px;
   overflow: auto;
   color: var(--muted);
+}
+
+.tree-card {
+  min-width: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 14px;
+}
+
+.tree-card-header {
+  margin-bottom: 14px;
+}
+
+.tree-card-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.tree-card-header span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.tree-canvas {
+  min-width: max-content;
+  padding: 8px 4px 4px;
+}
+
+.tree-level {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
 }
 
 .tree-node {
@@ -497,13 +599,55 @@ th {
   font-size: 12px;
 }
 
+.tree-node.internal {
+  border-color: #35518f;
+}
+
+.tree-node.leaf {
+  border-color: #6d4dc7;
+}
+
 .tree-children {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding-left: 16px;
-  margin-left: 12px;
-  border-left: 1px solid var(--border);
+  align-items: flex-start;
+  justify-content: center;
+  gap: 22px;
+  position: relative;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.tree-children::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22px;
+  right: 22px;
+  border-top: 1px solid #3b4b63;
+}
+
+.tree-level > .tree-children::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  height: 18px;
+  border-left: 1px solid #3b4b63;
+}
+
+.tree-branch {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.tree-branch::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  height: 14px;
+  border-left: 1px solid #3b4b63;
 }
 
 #bitmapCanvas,
@@ -523,7 +667,10 @@ th {
 
 #bitmapOutput,
 #decodedOutput,
-#encodedOutput {
+#encodedOutput,
+#huffmanEncodedOutput,
+#shannonEncodedOutput,
+#decodedSummaryOutput {
   min-height: 220px;
   overflow: auto;
   white-space: pre;
@@ -544,6 +691,10 @@ th {
   }
 
   .formula-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .result-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -588,6 +739,11 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .tree-view,
+  .final-results-grid {
+    grid-template-columns: 1fr;
+  }
+
   .topbar {
     flex-direction: column;
   }
@@ -620,7 +776,7 @@ th {
   }
 
   .chart-panel canvas {
-    height: 230px !important;
+    height: 260px !important;
   }
 
   table {
@@ -685,6 +841,10 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .result-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
   .metric-row {
     align-items: flex-start;
     flex-direction: column;
@@ -700,12 +860,15 @@ th {
   }
 
   .chart-panel canvas {
-    height: 210px !important;
+    height: 230px !important;
   }
 
   #bitmapOutput,
   #decodedOutput,
-  #encodedOutput {
+  #encodedOutput,
+  #huffmanEncodedOutput,
+  #shannonEncodedOutput,
+  #decodedSummaryOutput {
     min-height: 180px;
   }
 
@@ -758,6 +921,6 @@ th {
   }
 
   .chart-panel canvas {
-    height: 190px !important;
+    height: 210px !important;
   }
 }

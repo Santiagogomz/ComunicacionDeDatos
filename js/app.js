@@ -313,10 +313,21 @@ function clearCompressionUI() {
   $("#avgLength").textContent = "0";
   $("#entropyValue").textContent = "0";
   $("#bestAlgorithm").textContent = "Sin datos";
+  $("#analyzedMessagePreview").textContent = "Sin mensaje procesado";
+  $("#resultTotalChars").textContent = "0";
+  $("#resultUniqueSymbols").textContent = "0";
+  $("#resultAlgorithms").textContent = "Huffman y Shannon-Fano";
   $("#encodedOutput").value = "";
   $("#encodedMeta").textContent = "0 bits";
+  $("#huffmanEncodedOutput").value = "";
+  $("#shannonEncodedOutput").value = "";
+  $("#decodedSummaryOutput").value = "";
+  $("#summaryOriginalSize").textContent = "0 bits";
+  $("#summaryHuffmanSize").textContent = "0 bits";
+  $("#summaryShannonSize").textContent = "0 bits";
+  $("#summaryCompressionRate").textContent = "0%";
   clearDecodeUI();
-  $("#symbolsTable").innerHTML = '<tr><td colspan="5">Procese un texto para ver la tabla.</td></tr>';
+  $("#symbolsTable").innerHTML = '<tr><td colspan="6">Procese un texto para ver la tabla.</td></tr>';
   $("#treeView").textContent = "Procese texto para visualizar el arbol.";
 }
 
@@ -336,6 +347,17 @@ function updateCompressionUI(text) {
   $("#bestAlgorithm").textContent = best.name;
   $("#encodedOutput").value = active.encoded;
   $("#encodedMeta").textContent = `${active.metrics.compressedBits} bits`;
+  $("#analyzedMessagePreview").textContent = text.length > 180 ? `${text.slice(0, 180)}...` : text;
+  $("#resultTotalChars").textContent = `${symbolCount(text)}`;
+  $("#resultUniqueSymbols").textContent = `${Object.keys(huffman.frequencies).length}`;
+  $("#resultAlgorithms").textContent = "Huffman y Shannon-Fano";
+  $("#huffmanEncodedOutput").value = huffman.encoded;
+  $("#shannonEncodedOutput").value = shannon.encoded;
+  $("#decodedSummaryOutput").value = huffman.decoded;
+  $("#summaryOriginalSize").textContent = `${huffman.metrics.originalBits} bits`;
+  $("#summaryHuffmanSize").textContent = `${huffman.metrics.compressedBits} bits`;
+  $("#summaryShannonSize").textContent = `${shannon.metrics.compressedBits} bits`;
+  $("#summaryCompressionRate").textContent = `${best.metrics.compressionRate.toFixed(2)}%`;
 
   renderSymbolsTable(text, huffman, shannon);
 }
@@ -350,9 +372,10 @@ function renderSymbolsTable(text, huffman, shannon) {
         <tr>
           <td>${escapeHtml(symbolLabel(symbol))}</td>
           <td>${frequency}</td>
-          <td>${probability.toFixed(2)}%</td>
           <td>${huffman.codes[symbol]}</td>
+          <td>${huffman.codes[symbol].length}</td>
           <td>${shannon.codes[symbol]}</td>
+          <td>${shannon.codes[symbol].length}</td>
         </tr>
       `;
     })
@@ -365,9 +388,10 @@ function renderTreeNode(node) {
   if (!node) return "";
   const label = node.symbol === null ? node.frequency : `${symbolLabel(node.symbol)}:${node.frequency}`;
   const children = node.left || node.right
-    ? `<div class="tree-children">${renderTreeNode(node.left)}${renderTreeNode(node.right)}</div>`
+    ? `<div class="tree-children"><div class="tree-branch">${renderTreeNode(node.left)}</div><div class="tree-branch">${renderTreeNode(node.right)}</div></div>`
     : "";
-  return `<div><span class="tree-node">${escapeHtml(label)}</span>${children}</div>`;
+  const nodeType = node.symbol === null ? "internal" : "leaf";
+  return `<div class="tree-level"><span class="tree-node ${nodeType}">${escapeHtml(label)}</span>${children}</div>`;
 }
 
 function renderTree() {
@@ -377,10 +401,20 @@ function renderTree() {
   }
 
   $("#treeView").innerHTML = `
-    <h2>Huffman</h2>
-    ${renderTreeNode(state.huffman.tree)}
-    <h2>Shannon-Fano</h2>
-    ${renderTreeNode(state.shannon.tree)}
+    <div class="tree-card">
+      <div class="tree-card-header">
+        <h3>Árbol Huffman</h3>
+        <span>Frecuencia acumulada en nodos internos</span>
+      </div>
+      <div class="tree-canvas">${renderTreeNode(state.huffman.tree)}</div>
+    </div>
+    <div class="tree-card">
+      <div class="tree-card-header">
+        <h3>Árbol Shannon-Fano</h3>
+        <span>Particiones por probabilidad</span>
+      </div>
+      <div class="tree-canvas">${renderTreeNode(state.shannon.tree)}</div>
+    </div>
   `;
 }
 

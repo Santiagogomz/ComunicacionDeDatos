@@ -106,11 +106,36 @@
           </div>
         </div>
 
+        <div class="panel result-summary-panel">
+          <div class="panel-header">
+            <h2>Mensaje analizado</h2>
+            <span id="resultAlgorithms">Huffman y Shannon-Fano</span>
+          </div>
+          <div class="result-summary-grid">
+            <div class="result-summary-item result-summary-message">
+              <span>Contenido</span>
+              <strong id="analyzedMessagePreview">Sin mensaje procesado</strong>
+            </div>
+            <div class="result-summary-item">
+              <span>Total de caracteres</span>
+              <strong id="resultTotalChars">0</strong>
+            </div>
+            <div class="result-summary-item">
+              <span>Símbolos únicos</span>
+              <strong id="resultUniqueSymbols">0</strong>
+            </div>
+            <div class="result-summary-item">
+              <span>Algoritmos comparados</span>
+              <strong>Huffman / Shannon-Fano</strong>
+            </div>
+          </div>
+        </div>
+
         <div class="section-grid">
           <div class="panel table-panel">
             <div class="panel-header">
-              <h2>Tabla de simbolos</h2>
-              <span>Frecuencia, probabilidad y códigos</span>
+              <h2>Tabla comparativa</h2>
+              <span>Códigos y longitudes por símbolo</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -118,13 +143,14 @@
                   <tr>
                     <th>Símbolo</th>
                     <th>Frecuencia</th>
-                    <th>Prob.</th>
-                    <th>Huffman</th>
-                    <th>Shannon-Fano</th>
+                    <th>Código Huffman</th>
+                    <th>Longitud Huffman</th>
+                    <th>Código Shannon-Fano</th>
+                    <th>Longitud Shannon-Fano</th>
                   </tr>
                 </thead>
                 <tbody id="symbolsTable">
-                  <tr><td colspan="5">Procese un texto para ver la tabla.</td></tr>
+                  <tr><td colspan="6">Procese un texto para ver la tabla.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -136,6 +162,45 @@
               <span id="encodedMeta">0 bits</span>
             </div>
             <textarea id="encodedOutput" spellcheck="false" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="panel final-results-panel">
+          <div class="panel-header">
+            <h2>Resultados finales</h2>
+            <span>Codificación, decodificación y tamaños</span>
+          </div>
+          <div class="final-results-grid">
+            <div class="result-block">
+              <label for="huffmanEncodedOutput">Texto codificado con Huffman</label>
+              <textarea id="huffmanEncodedOutput" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="result-block">
+              <label for="shannonEncodedOutput">Texto codificado con Shannon-Fano</label>
+              <textarea id="shannonEncodedOutput" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="result-block">
+              <label for="decodedSummaryOutput">Texto decodificado</label>
+              <textarea id="decodedSummaryOutput" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="result-size-list">
+              <div class="metric-row">
+                <span>Tamaño original</span>
+                <strong id="summaryOriginalSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tamaño comprimido Huffman</span>
+                <strong id="summaryHuffmanSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tamaño comprimido Shannon-Fano</span>
+                <strong id="summaryShannonSize">0 bits</strong>
+              </div>
+              <div class="metric-row">
+                <span>Tasa de compresión</span>
+                <strong id="summaryCompressionRate">0%</strong>
+              </div>
+            </div>
           </div>
         </div>
 
