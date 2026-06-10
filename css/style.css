@@ -674,6 +674,12 @@ th {
   font-size: 13px;
 }
 
+.tree-control.expand {
+  min-width: 78px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
 .tree-control:hover,
 .tree-control:focus-visible {
   border-color: #67e8f9;
@@ -682,17 +688,53 @@ th {
   outline: none;
 }
 
+.tree-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.tree-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.tree-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(96vw, 1500px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-modal-card .tree-canvas {
+  min-height: 0;
+}
+
+.modal-tree-viewport {
+  height: min(72vh, 760px);
+}
+
 .svg-tree {
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
 }
 
 .svg-tree-link {
   stroke: #7dd3fc;
-  stroke-width: 3.4;
+  stroke-width: 4.6;
   stroke-linecap: round;
+  shape-rendering: geometricPrecision;
 }
 
 .svg-tree-link.huffman {
@@ -703,40 +745,54 @@ th {
   stroke: #c4b5fd;
 }
 
-.svg-tree-node rect {
+.svg-tree-node circle {
   fill: #14243f;
-  stroke-width: 3.4;
+  stroke-width: 4.2;
 }
 
 .svg-tree-node text {
   fill: #ffffff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: Inter, Poppins, "Segoe UI", Arial, sans-serif;
   font-weight: 800;
+  paint-order: stroke;
   pointer-events: none;
+  stroke: rgba(5, 10, 18, 0.22);
+  stroke-width: 0.7px;
+  text-rendering: geometricPrecision;
 }
 
-.svg-tree-node.huffman.internal rect {
+.svg-tree-node.leaf text {
+  font-weight: 700;
+}
+
+.svg-tree-node.leaf .leaf-frequency {
+  font-weight: 800;
+}
+
+.svg-tree-node.huffman.internal circle {
   stroke: #22d3ee;
   fill: #17345b;
 }
 
-.svg-tree-node.shannon.internal rect {
+.svg-tree-node.shannon.internal circle {
   stroke: #a78bfa;
   fill: #2a2359;
 }
 
-.svg-tree-node.leaf rect {
+.svg-tree-node.leaf circle {
   stroke: #39ff88;
-  fill: #102b2d;
+  fill: #103337;
 }
 
-.svg-tree-node.root rect {
-  filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.8));
-  stroke-width: 4.2;
+.svg-tree-node.root circle {
+  filter: drop-shadow(0 0 14px rgba(34, 211, 238, 0.82));
+  stroke-width: 5.2;
+  fill: #1b4774;
 }
 
-.svg-tree-node.shannon.root rect {
-  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.8));
+.svg-tree-node.shannon.root circle {
+  filter: drop-shadow(0 0 14px rgba(167, 139, 250, 0.82));
+  fill: #443078;
 }
 
 #bitmapCanvas,

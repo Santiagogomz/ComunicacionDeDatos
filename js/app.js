@@ -447,6 +447,33 @@ function layoutTree(node, depth, cursor, nodes, links, spacing) {
   return x;
 }
 
+function treeNodeLabelParts(entry) {
+  if (!entry.isLeaf) return [`${entry.node.frequency}`];
+  return [symbolLabel(entry.node.symbol), `${entry.node.frequency}`];
+}
+
+function treeNodeRadius(entry, dense) {
+  if (entry.depth === 0) return dense ? 68 : 76;
+  return dense ? 58 : 66;
+}
+
+function treeLinkEndpoint(from, to, dense) {
+  const fromRadius = treeNodeRadius(from, dense);
+  const toRadius = treeNodeRadius(to, dense);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.max(Math.hypot(dx, dy), 1);
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+
+  return {
+    x1: from.x + unitX * fromRadius,
+    y1: from.y + unitY * fromRadius,
+    x2: to.x - unitX * toRadius,
+    y2: to.y - unitY * toRadius
+  };
+}
+
 function renderTreeSvg(root, algorithm) {
   const stats = measureTree(root);
   const leafCount = Math.max(stats.leaves, 1);
@@ -454,13 +481,15 @@ function renderTreeSvg(root, algorithm) {
   const dense = leafCount > 14;
   const maxLabelLength = maxTreeLabelLength(root);
   const fontSize = dense ? 16 : 18;
-  const estimatedMaxNodeWidth = Math.max(dense ? 98 : 118, maxLabelLength * fontSize * 0.82 + 44);
+  const leafFontSize = dense ? 16 : 18;
+  const baseRadius = dense ? 58 : 66;
+  const rootRadius = dense ? 68 : 76;
+  const estimatedNodeDiameter = Math.max(rootRadius * 2, maxLabelLength * fontSize * 0.62 + baseRadius * 1.5);
   const spacing = {
-    margin: Math.ceil(estimatedMaxNodeWidth / 2 + 28),
-    x: Math.max(dense ? 122 : 152, estimatedMaxNodeWidth + 34),
-    y: dense ? 128 : 152
+    margin: Math.ceil(rootRadius + 42),
+    x: Math.max(dense ? 158 : 188, estimatedNodeDiameter + 46),
+    y: dense ? 168 : 198
   };
-  const nodeHeight = dense ? 50 : 58;
   const width = Math.max(leafCount * spacing.x + spacing.margin, 520);
   const height = Math.max(depthCount * spacing.y + spacing.margin, 300);
   const nodes = [];
@@ -468,22 +497,29 @@ function renderTreeSvg(root, algorithm) {
 
   layoutTree(root, 0, { value: 0 }, nodes, links, spacing);
 
-  const lines = links.map(({ from, to }) => `
-    <line class="svg-tree-link ${algorithm}" x1="${from.x}" y1="${from.y + nodeHeight / 2}" x2="${to.x}" y2="${to.y - nodeHeight / 2}" />
-  `).join("");
+  const lines = links.map(({ from, to }) => {
+    const endpoint = treeLinkEndpoint(from, to, dense);
+    return `
+      <line class="svg-tree-link ${algorithm}" x1="${endpoint.x1}" y1="${endpoint.y1}" x2="${endpoint.x2}" y2="${endpoint.y2}" />
+    `;
+  }).join("");
 
   const circles = nodes.map((entry) => {
-    const label = entry.isLeaf ? `${symbolLabel(entry.node.symbol)}:${entry.node.frequency}` : `${entry.node.frequency}`;
-    const safeLabel = escapeHtml(label);
+    const labelParts = treeNodeLabelParts(entry).map(escapeHtml);
     const nodeClass = entry.isLeaf ? "leaf" : "internal";
     const rootClass = entry.depth === 0 ? " root" : "";
-    const nodeWidth = Math.max(dense ? 98 : 118, label.length * fontSize * 0.82 + 44);
-    const x = -nodeWidth / 2;
-    const y = -nodeHeight / 2;
+    const radius = treeNodeRadius(entry, dense);
+    const labelMarkup = entry.isLeaf ? `
+        <text class="leaf-symbol" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="-11">${labelParts[0]}</text>
+        <text class="leaf-frequency" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="14">${labelParts[1]}</text>
+      ` : `
+        <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${labelParts[0]}</text>
+      `;
+
     return `
       <g class="svg-tree-node ${algorithm} ${nodeClass}${rootClass}" transform="translate(${entry.x} ${entry.y})">
-        <rect x="${x}" y="${y}" width="${nodeWidth}" height="${nodeHeight}" rx="${nodeHeight / 2}" />
-        <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${safeLabel}</text>
+        <circle r="${radius}" />
+        ${labelMarkup}
       </g>
     `;
   }).join("");
@@ -513,6 +549,7 @@ function renderTree() {
           <button type="button" class="tree-control" data-tree-action="zoom-in" aria-label="Acercar árbol Huffman">+</button>
           <button type="button" class="tree-control" data-tree-action="zoom-out" aria-label="Alejar árbol Huffman">-</button>
           <button type="button" class="tree-control reset" data-tree-action="reset" aria-label="Restaurar vista del árbol Huffman">Reset</button>
+          <button type="button" class="tree-control expand" data-tree-action="expand" aria-label="Abrir árbol Huffman ampliado">Ampliar</button>
         </div>
       </div>
       <div class="tree-canvas">
@@ -531,6 +568,7 @@ function renderTree() {
           <button type="button" class="tree-control" data-tree-action="zoom-in" aria-label="Acercar árbol Shannon-Fano">+</button>
           <button type="button" class="tree-control" data-tree-action="zoom-out" aria-label="Alejar árbol Shannon-Fano">-</button>
           <button type="button" class="tree-control reset" data-tree-action="reset" aria-label="Restaurar vista del árbol Shannon-Fano">Reset</button>
+          <button type="button" class="tree-control expand" data-tree-action="expand" aria-label="Abrir árbol Shannon-Fano ampliado">Ampliar</button>
         </div>
       </div>
       <div class="tree-canvas">
@@ -543,8 +581,7 @@ function renderTree() {
   initTreeViewers();
 }
 
-function initTreeViewers() {
-  state.treeViewers = $$(".tree-card").map((card) => {
+function createTreeViewer(card) {
     const viewport = card.querySelector(".tree-viewport");
     const stage = card.querySelector(".tree-stage");
     const controls = card.querySelectorAll("[data-tree-action]");
@@ -640,7 +677,9 @@ function initTreeViewers() {
         return;
       }
 
-      if (!viewer.isDragging || viewer.scale <= 1) return;
+      const viewportRect = viewer.viewport.getBoundingClientRect();
+      const canPan = viewer.stage.offsetWidth * viewer.scale > viewportRect.width || viewer.stage.offsetHeight * viewer.scale > viewportRect.height;
+      if (!viewer.isDragging || !canPan) return;
       event.preventDefault();
       viewer.x += event.clientX - viewer.lastX;
       viewer.y += event.clientY - viewer.lastY;
@@ -674,11 +713,53 @@ function initTreeViewers() {
         if (action === "zoom-in") setZoom(viewer.scale * 1.18, centerX, centerY);
         if (action === "zoom-out") setZoom(viewer.scale * 0.84, centerX, centerY);
         if (action === "reset") resetView();
+        if (action === "expand") openTreeModal(viewer.viewport.dataset.treeViewer);
       });
     });
 
     resetView();
     return viewer;
+}
+
+function initTreeViewers() {
+  state.treeViewers = $$("#treeView .tree-card").map(createTreeViewer);
+}
+
+function openTreeModal(algorithm) {
+  const isHuffman = algorithm === "huffman";
+  const title = isHuffman ? "Árbol Huffman" : "Árbol Shannon-Fano";
+  const subtitle = isHuffman ? "Frecuencia acumulada en nodos internos" : "Particiones por probabilidad";
+  const tree = isHuffman ? state.huffman.tree : state.shannon.tree;
+  const modal = document.createElement("div");
+
+  modal.className = "tree-modal";
+  modal.innerHTML = `
+    <div class="tree-modal-backdrop" data-tree-close></div>
+    <div class="tree-card tree-modal-card" role="dialog" aria-modal="true" aria-label="${title} ampliado">
+      <div class="tree-card-header">
+        <div>
+          <h3>${title}</h3>
+          <span>${subtitle}</span>
+        </div>
+        <div class="tree-controls" aria-label="Controles de zoom ${title}">
+          <button type="button" class="tree-control" data-tree-action="zoom-in" aria-label="Acercar ${title}">+</button>
+          <button type="button" class="tree-control" data-tree-action="zoom-out" aria-label="Alejar ${title}">-</button>
+          <button type="button" class="tree-control reset" data-tree-action="reset" aria-label="Restaurar vista de ${title}">Reset</button>
+          <button type="button" class="tree-control expand" data-tree-close aria-label="Cerrar vista ampliada">Cerrar</button>
+        </div>
+      </div>
+      <div class="tree-canvas">
+        <div class="tree-viewport modal-tree-viewport" data-tree-viewer="${algorithm}">
+          <div class="tree-stage">${renderTreeSvg(tree, algorithm)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  createTreeViewer(modal.querySelector(".tree-modal-card"));
+  modal.querySelectorAll("[data-tree-close]").forEach((element) => {
+    element.addEventListener("click", () => modal.remove());
   });
 }
 
