@@ -21,7 +21,8 @@ const state = {
     pendingFrame: null,
     sourceType: "none",
     hasProcessed: false
-  }
+  },
+  treeViewers: []
 };
 
 class HuffmanNode {
@@ -504,19 +505,181 @@ function renderTree() {
   $("#treeView").innerHTML = `
     <div class="tree-card">
       <div class="tree-card-header">
-        <h3>Árbol Huffman</h3>
-        <span>Frecuencia acumulada en nodos internos</span>
+        <div>
+          <h3>Árbol Huffman</h3>
+          <span>Frecuencia acumulada en nodos internos</span>
+        </div>
+        <div class="tree-controls" aria-label="Controles de zoom Huffman">
+          <button type="button" class="tree-control" data-tree-action="zoom-in" aria-label="Acercar árbol Huffman">+</button>
+          <button type="button" class="tree-control" data-tree-action="zoom-out" aria-label="Alejar árbol Huffman">-</button>
+          <button type="button" class="tree-control reset" data-tree-action="reset" aria-label="Restaurar vista del árbol Huffman">Reset</button>
+        </div>
       </div>
-      <div class="tree-canvas">${renderTreeSvg(state.huffman.tree, "huffman")}</div>
+      <div class="tree-canvas">
+        <div class="tree-viewport" data-tree-viewer="huffman">
+          <div class="tree-stage">${renderTreeSvg(state.huffman.tree, "huffman")}</div>
+        </div>
+      </div>
     </div>
     <div class="tree-card">
       <div class="tree-card-header">
-        <h3>Árbol Shannon-Fano</h3>
-        <span>Particiones por probabilidad</span>
+        <div>
+          <h3>Árbol Shannon-Fano</h3>
+          <span>Particiones por probabilidad</span>
+        </div>
+        <div class="tree-controls" aria-label="Controles de zoom Shannon-Fano">
+          <button type="button" class="tree-control" data-tree-action="zoom-in" aria-label="Acercar árbol Shannon-Fano">+</button>
+          <button type="button" class="tree-control" data-tree-action="zoom-out" aria-label="Alejar árbol Shannon-Fano">-</button>
+          <button type="button" class="tree-control reset" data-tree-action="reset" aria-label="Restaurar vista del árbol Shannon-Fano">Reset</button>
+        </div>
       </div>
-      <div class="tree-canvas">${renderTreeSvg(state.shannon.tree, "shannon")}</div>
+      <div class="tree-canvas">
+        <div class="tree-viewport" data-tree-viewer="shannon">
+          <div class="tree-stage">${renderTreeSvg(state.shannon.tree, "shannon")}</div>
+        </div>
+      </div>
     </div>
   `;
+  initTreeViewers();
+}
+
+function initTreeViewers() {
+  state.treeViewers = $$(".tree-card").map((card) => {
+    const viewport = card.querySelector(".tree-viewport");
+    const stage = card.querySelector(".tree-stage");
+    const controls = card.querySelectorAll("[data-tree-action]");
+    const viewer = {
+      viewport,
+      stage,
+      scale: 1,
+      x: 0,
+      y: 0,
+      pointers: new Map(),
+      isDragging: false,
+      lastX: 0,
+      lastY: 0,
+      pinchStartDistance: 0,
+      pinchStartScale: 1
+    };
+
+    const applyTransform = () => {
+      viewer.stage.style.transform = `translate(${viewer.x}px, ${viewer.y}px) scale(${viewer.scale})`;
+    };
+
+    const clampPan = () => {
+      const viewportRect = viewer.viewport.getBoundingClientRect();
+      const stageWidth = viewer.stage.offsetWidth * viewer.scale;
+      const stageHeight = viewer.stage.offsetHeight * viewer.scale;
+      const minX = Math.min(0, viewportRect.width - stageWidth);
+      const minY = Math.min(0, viewportRect.height - stageHeight);
+
+      viewer.x = stageWidth <= viewportRect.width ? (viewportRect.width - stageWidth) / 2 : Math.min(0, Math.max(minX, viewer.x));
+      viewer.y = stageHeight <= viewportRect.height ? (viewportRect.height - stageHeight) / 2 : Math.min(0, Math.max(minY, viewer.y));
+    };
+
+    const setZoom = (nextScale, originX, originY) => {
+      const previousScale = viewer.scale;
+      const next = Math.min(4, Math.max(1, nextScale));
+      if (next === previousScale) return;
+
+      const rect = viewer.viewport.getBoundingClientRect();
+      const px = originX - rect.left;
+      const py = originY - rect.top;
+      const contentX = (px - viewer.x) / previousScale;
+      const contentY = (py - viewer.y) / previousScale;
+
+      viewer.scale = next;
+      viewer.x = px - contentX * next;
+      viewer.y = py - contentY * next;
+      clampPan();
+      applyTransform();
+    };
+
+    const resetView = () => {
+      viewer.scale = 1;
+      viewer.x = 0;
+      viewer.y = 0;
+      clampPan();
+      applyTransform();
+    };
+
+    viewport.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const direction = event.deltaY > 0 ? -1 : 1;
+      setZoom(viewer.scale * (direction > 0 ? 1.12 : 0.88), event.clientX, event.clientY);
+    }, { passive: false });
+
+    viewport.addEventListener("pointerdown", (event) => {
+      viewport.setPointerCapture(event.pointerId);
+      viewer.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      viewer.isDragging = true;
+      viewer.lastX = event.clientX;
+      viewer.lastY = event.clientY;
+      viewport.classList.add("is-dragging");
+
+      if (viewer.pointers.size === 2) {
+        const [first, second] = [...viewer.pointers.values()];
+        viewer.pinchStartDistance = Math.hypot(second.x - first.x, second.y - first.y);
+        viewer.pinchStartScale = viewer.scale;
+      }
+    });
+
+    viewport.addEventListener("pointermove", (event) => {
+      if (!viewer.pointers.has(event.pointerId)) return;
+      viewer.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (viewer.pointers.size === 2) {
+        event.preventDefault();
+        const [first, second] = [...viewer.pointers.values()];
+        const distance = Math.hypot(second.x - first.x, second.y - first.y);
+        const centerX = (first.x + second.x) / 2;
+        const centerY = (first.y + second.y) / 2;
+        if (viewer.pinchStartDistance > 0) {
+          setZoom(viewer.pinchStartScale * (distance / viewer.pinchStartDistance), centerX, centerY);
+        }
+        return;
+      }
+
+      if (!viewer.isDragging || viewer.scale <= 1) return;
+      event.preventDefault();
+      viewer.x += event.clientX - viewer.lastX;
+      viewer.y += event.clientY - viewer.lastY;
+      viewer.lastX = event.clientX;
+      viewer.lastY = event.clientY;
+      clampPan();
+      applyTransform();
+    });
+
+    const stopPointer = (event) => {
+      viewer.pointers.delete(event.pointerId);
+      viewer.isDragging = viewer.pointers.size > 0;
+      viewport.classList.toggle("is-dragging", viewer.isDragging);
+      if (viewer.pointers.size === 1) {
+        const [remaining] = [...viewer.pointers.values()];
+        viewer.lastX = remaining.x;
+        viewer.lastY = remaining.y;
+      }
+    };
+
+    viewport.addEventListener("pointerup", stopPointer);
+    viewport.addEventListener("pointercancel", stopPointer);
+
+    controls.forEach((button) => {
+      button.addEventListener("click", () => {
+        const rect = viewer.viewport.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const action = button.dataset.treeAction;
+
+        if (action === "zoom-in") setZoom(viewer.scale * 1.18, centerX, centerY);
+        if (action === "zoom-out") setZoom(viewer.scale * 0.84, centerX, centerY);
+        if (action === "reset") resetView();
+      });
+    });
+
+    resetView();
+    return viewer;
+  });
 }
 
 function chartOptions() {

@@ -593,6 +593,10 @@ th {
 }
 
 .tree-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 18px;
 }
 
@@ -612,6 +616,70 @@ th {
 .tree-canvas {
   width: 100%;
   padding: 10px 0 0;
+}
+
+.tree-viewport {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.68), rgba(11, 15, 25, 0.88));
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tree-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.tree-stage {
+  width: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform 120ms ease-out;
+}
+
+.tree-viewport.is-dragging .tree-stage {
+  transition: none;
+}
+
+.tree-controls {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 8px;
+  background: rgba(11, 15, 25, 0.62);
+}
+
+.tree-control {
+  min-width: 34px;
+  height: 32px;
+  border: 1px solid rgba(103, 232, 249, 0.35);
+  border-radius: 6px;
+  background: #10213a;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.tree-control.reset {
+  min-width: 58px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.tree-control:hover,
+.tree-control:focus-visible {
+  border-color: #67e8f9;
+  background: #17345b;
+  color: #ffffff;
+  outline: none;
 }
 
 .svg-tree {
@@ -850,6 +918,15 @@ th {
 
   .tree-card {
     padding: 14px;
+  }
+
+  .tree-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tree-controls {
+    align-self: flex-start;
   }
 
   .tree-card-header h3 {
