@@ -754,11 +754,11 @@ th {
   fill: #ffffff;
   font-family: Inter, Poppins, "Segoe UI", Arial, sans-serif;
   font-weight: 800;
-  paint-order: stroke;
   pointer-events: none;
-  stroke: rgba(5, 10, 18, 0.22);
-  stroke-width: 0.7px;
+  stroke: none;
   text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  font-smooth: always;
 }
 
 .svg-tree-node.leaf text {

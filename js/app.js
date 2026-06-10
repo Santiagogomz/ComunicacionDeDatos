@@ -452,14 +452,15 @@ function treeNodeLabelParts(entry) {
   return [symbolLabel(entry.node.symbol), `${entry.node.frequency}`];
 }
 
-function treeNodeRadius(entry, dense) {
-  if (entry.depth === 0) return dense ? 68 : 76;
-  return dense ? 58 : 66;
+function treeNodeRadius(entry, dense, largeView = false) {
+  const scale = largeView ? 1.16 : 1;
+  const radius = entry.depth === 0 ? (dense ? 76 : 86) : (dense ? 66 : 74);
+  return Math.round(radius * scale);
 }
 
-function treeLinkEndpoint(from, to, dense) {
-  const fromRadius = treeNodeRadius(from, dense);
-  const toRadius = treeNodeRadius(to, dense);
+function treeLinkEndpoint(from, to, dense, largeView = false) {
+  const fromRadius = treeNodeRadius(from, dense, largeView);
+  const toRadius = treeNodeRadius(to, dense, largeView);
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const distance = Math.max(Math.hypot(dx, dy), 1);
@@ -474,21 +475,22 @@ function treeLinkEndpoint(from, to, dense) {
   };
 }
 
-function renderTreeSvg(root, algorithm) {
+function renderTreeSvg(root, algorithm, options = {}) {
+  const largeView = Boolean(options.largeView);
   const stats = measureTree(root);
   const leafCount = Math.max(stats.leaves, 1);
   const depthCount = Math.max(stats.depth + 1, 1);
   const dense = leafCount > 14;
   const maxLabelLength = maxTreeLabelLength(root);
-  const fontSize = dense ? 16 : 18;
-  const leafFontSize = dense ? 16 : 18;
-  const baseRadius = dense ? 58 : 66;
-  const rootRadius = dense ? 68 : 76;
+  const fontSize = largeView ? (dense ? 22 : 24) : (dense ? 18 : 20);
+  const leafFontSize = largeView ? (dense ? 22 : 24) : (dense ? 18 : 20);
+  const baseRadius = treeNodeRadius({ depth: 1 }, dense, largeView);
+  const rootRadius = treeNodeRadius({ depth: 0 }, dense, largeView);
   const estimatedNodeDiameter = Math.max(rootRadius * 2, maxLabelLength * fontSize * 0.62 + baseRadius * 1.5);
   const spacing = {
     margin: Math.ceil(rootRadius + 42),
-    x: Math.max(dense ? 158 : 188, estimatedNodeDiameter + 46),
-    y: dense ? 168 : 198
+    x: Math.max(dense ? 178 : 210, estimatedNodeDiameter + 52),
+    y: dense ? 188 : 220
   };
   const width = Math.max(leafCount * spacing.x + spacing.margin, 520);
   const height = Math.max(depthCount * spacing.y + spacing.margin, 300);
@@ -498,7 +500,7 @@ function renderTreeSvg(root, algorithm) {
   layoutTree(root, 0, { value: 0 }, nodes, links, spacing);
 
   const lines = links.map(({ from, to }) => {
-    const endpoint = treeLinkEndpoint(from, to, dense);
+    const endpoint = treeLinkEndpoint(from, to, dense, largeView);
     return `
       <line class="svg-tree-link ${algorithm}" x1="${endpoint.x1}" y1="${endpoint.y1}" x2="${endpoint.x2}" y2="${endpoint.y2}" />
     `;
@@ -508,10 +510,11 @@ function renderTreeSvg(root, algorithm) {
     const labelParts = treeNodeLabelParts(entry).map(escapeHtml);
     const nodeClass = entry.isLeaf ? "leaf" : "internal";
     const rootClass = entry.depth === 0 ? " root" : "";
-    const radius = treeNodeRadius(entry, dense);
+    const radius = treeNodeRadius(entry, dense, largeView);
+    const leafOffset = largeView ? 15 : 13;
     const labelMarkup = entry.isLeaf ? `
-        <text class="leaf-symbol" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="-11">${labelParts[0]}</text>
-        <text class="leaf-frequency" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="14">${labelParts[1]}</text>
+        <text class="leaf-symbol" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="-${leafOffset}">${labelParts[0]}</text>
+        <text class="leaf-frequency" text-anchor="middle" dominant-baseline="central" font-size="${leafFontSize}" y="${leafOffset + 2}">${labelParts[1]}</text>
       ` : `
         <text text-anchor="middle" dominant-baseline="central" font-size="${fontSize}">${labelParts[0]}</text>
       `;
@@ -750,7 +753,7 @@ function openTreeModal(algorithm) {
       </div>
       <div class="tree-canvas">
         <div class="tree-viewport modal-tree-viewport" data-tree-viewer="${algorithm}">
-          <div class="tree-stage">${renderTreeSvg(tree, algorithm)}</div>
+          <div class="tree-stage">${renderTreeSvg(tree, algorithm, { largeView: true })}</div>
         </div>
       </div>
     </div>
