@@ -14,7 +14,7 @@
         <div class="brand-mark">BC</div>
         <div>
           <strong>BinaryCod</strong>
-          <span>Compresión y señales</span>
+          <span>Compresión binaria</span>
         </div>
       </div>
 
@@ -23,7 +23,6 @@
         <button class="nav-item" data-section="decodificar">Decodificar</button>
         <button class="nav-item" data-section="visualizacion">Visualización</button>
         <button class="nav-item" data-section="bitmap">Bitmap B/N</button>
-        <button class="nav-item" data-section="adc">ADC</button>
       </nav>
     </aside>
 
@@ -31,7 +30,7 @@
       <header class="topbar">
         <div>
           <h1>BinaryCod</h1>
-          <p>Plataforma educativa para codificación, compresión binaria y digitalización de señales.</p>
+          <p>Plataforma educativa para codificación, decodificación y compresión binaria.</p>
         </div>
         <div class="topbar-actions">
           <span id="statusText">Listo</span>
@@ -465,75 +464,6 @@
         </div>
       </section>
 
-      <section class="app-section" id="adc">
-        <div class="section-grid section-grid-wide">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Simulador ADC</h2>
-              <span id="nyquistStatus">Nyquist estable</span>
-            </div>
-            <label for="signalType">Tipo de señal</label>
-            <select id="signalType">
-              <option value="sine">Sinusoidal</option>
-              <option value="square">Cuadrada</option>
-              <option value="noise">Ruido</option>
-            </select>
-            <label for="signalFrequency">Frecuencia: <span id="frequencyLabel">5 Hz</span></label>
-            <input id="signalFrequency" type="range" min="1" max="60" value="5">
-            <label for="samplingRate">Muestreo: <span id="samplingLabel">50 Hz</span></label>
-            <input id="samplingRate" type="range" min="8" max="120" step="1" value="50">
-            <label for="quantBits">Cuantización</label>
-            <select id="quantBits">
-              <option value="8">8 bits</option>
-              <option value="16">16 bits</option>
-              <option value="24">24 bits</option>
-            </select>
-          </div>
-
-          <div class="panel metrics-panel">
-            <div class="panel-header">
-              <h2>Mediciones</h2>
-              <span>Tiempo real</span>
-            </div>
-            <div class="metric-list">
-              <div class="metric-row">
-                <span>Frecuencia Nyquist</span>
-                <strong id="nyquistValue">25 Hz</strong>
-              </div>
-              <div class="metric-row">
-                <span>Muestras</span>
-                <strong id="sampleCount">0</strong>
-              </div>
-              <div class="metric-row">
-                <span>Niveles</span>
-                <strong id="quantLevels">256</strong>
-              </div>
-              <div class="metric-row">
-                <span>Aliasing</span>
-                <strong id="aliasingValue">No</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-grid">
-          <div class="panel chart-panel">
-            <div class="panel-header">
-              <h2>Original vs digitalizada</h2>
-              <span>Comparativa temporal</span>
-            </div>
-            <canvas id="adcChart"></canvas>
-          </div>
-
-          <div class="panel chart-panel">
-            <div class="panel-header">
-              <h2>Señal cuantizada</h2>
-              <span>Escalones digitales</span>
-            </div>
-            <canvas id="digitalChart"></canvas>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 

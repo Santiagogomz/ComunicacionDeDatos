@@ -9,11 +9,6 @@ const state = {
   shannon: null,
   sourceText: "",
   charts: {},
-  adcVisibility: {
-    analogica: true,
-    muestras: true,
-    cuantizada: true
-  },
   bitmap: {
     size: 16,
     cells: [],
@@ -805,27 +800,6 @@ function chartOptions() {
   };
 }
 
-function adcChartOptions(chartKey) {
-  const options = chartOptions();
-  const defaultLegendClick = Chart.defaults.plugins.legend.onClick;
-
-  options.parsing = false;
-  options.plugins.legend.onClick = (event, legendItem, legend) => {
-    defaultLegendClick(event, legendItem, legend);
-
-    if (chartKey === "adc") {
-      state.adcVisibility.analogica = legend.chart.isDatasetVisible(0);
-      state.adcVisibility.muestras = legend.chart.isDatasetVisible(1);
-    }
-
-    if (chartKey === "digital") {
-      state.adcVisibility.cuantizada = legend.chart.isDatasetVisible(0);
-    }
-  };
-
-  return options;
-}
-
 function replaceChart(key, canvasId, config) {
   if (state.charts[key]) state.charts[key].destroy();
   state.charts[key] = new Chart($(canvasId), config);
@@ -1177,77 +1151,6 @@ function downloadProcessedBitmap() {
   link.remove();
 }
 
-function signalValue(type, t, frequency) {
-  if (type === "square") return Math.sin(2 * Math.PI * frequency * t) >= 0 ? 1 : -1;
-  if (type === "noise") return Math.sin(2 * Math.PI * frequency * t) * 0.35 + (Math.random() * 2 - 1) * 0.65;
-  return Math.sin(2 * Math.PI * frequency * t);
-}
-
-function quantize(value, bits) {
-  const levels = 2 ** bits;
-  return Math.round(((value + 1) / 2) * (levels - 1)) / (levels - 1) * 2 - 1;
-}
-
-function updateAdc() {
-  if (!window.Chart) {
-    setStatus("Chart.js no disponible");
-    return;
-  }
-
-  const type = $("#signalType").value;
-  const frequency = Number($("#signalFrequency").value);
-  const samplingRate = Number($("#samplingRate").value);
-  const bits = Number($("#quantBits").value);
-  const duration = 1;
-  const points = 240;
-  const analog = [];
-  const samples = [];
-  const sampleCount = Math.max(2, Math.floor(samplingRate * duration));
-
-  for (let i = 0; i < points; i += 1) {
-    const t = (i / (points - 1)) * duration;
-    analog.push({ x: t, y: signalValue(type, t, frequency) });
-  }
-
-  for (let i = 0; i < sampleCount; i += 1) {
-    const t = (i / (sampleCount - 1)) * duration;
-    samples.push({ x: t, y: quantize(signalValue(type, t, frequency), bits) });
-  }
-
-  const nyquist = samplingRate / 2;
-  const aliasing = frequency > nyquist;
-  $("#frequencyLabel").textContent = `${frequency} Hz`;
-  $("#samplingLabel").textContent = `${samplingRate} Hz`;
-  $("#nyquistValue").textContent = `${nyquist.toFixed(1)} Hz`;
-  $("#sampleCount").textContent = `${sampleCount}`;
-  $("#quantLevels").textContent = `${2 ** bits}`;
-  $("#aliasingValue").textContent = aliasing ? "Sí" : "No";
-  $("#nyquistStatus").textContent = aliasing ? "Aliasing detectado" : "Nyquist estable";
-  $("#nyquistStatus").style.color = aliasing ? "#f59e0b" : "#10b981";
-
-  const adcOptions = adcChartOptions("adc");
-  const digitalOptions = adcChartOptions("digital");
-
-  replaceChart("adc", "#adcChart", {
-    type: "line",
-    data: {
-      datasets: [
-        { label: "Analógica", data: analog, borderColor: "#e5e7eb", pointRadius: 0, tension: 0.2, hidden: !state.adcVisibility.analogica },
-        { label: "Muestras", data: samples, borderColor: "#7c3aed", backgroundColor: "#7c3aed", pointRadius: 3, showLine: false, hidden: !state.adcVisibility.muestras }
-      ]
-    },
-    options: adcOptions
-  });
-
-  replaceChart("digital", "#digitalChart", {
-    type: "line",
-    data: {
-      datasets: [{ label: "Cuantizada", data: samples, borderColor: "#1e3a8a", backgroundColor: "#1e3a8a", stepped: true, pointRadius: 2, hidden: !state.adcVisibility.cuantizada }]
-    },
-    options: digitalOptions
-  });
-}
-
 function refreshTreeViewersOnResize() {
   state.treeViewers.forEach((viewer) => {
     if (!viewer || !viewer.clampPan || !viewer.applyTransform) return;
@@ -1265,7 +1168,6 @@ function bindEvents() {
       $$(".app-section").forEach((section) => section.classList.remove("active"));
       button.classList.add("active");
       $(`#${button.dataset.section}`).classList.add("active");
-      if (button.dataset.section === "adc") updateAdc();
     });
   });
 
@@ -1337,11 +1239,6 @@ function bindEvents() {
     handleBitmapDropFiles(event.dataTransfer.files);
   });
 
-  ["#signalType", "#signalFrequency", "#samplingRate", "#quantBits"].forEach((selector) => {
-    $(selector).addEventListener("input", updateAdc);
-    $(selector).addEventListener("change", updateAdc);
-  });
-
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(refreshTreeViewersOnResize, 120);
@@ -1351,7 +1248,6 @@ function bindEvents() {
 function init() {
   bindEvents();
   initBitmap();
-  updateAdc();
   $("#sourceText").value = "ingenieria de comunicaciones";
   processText();
 }
